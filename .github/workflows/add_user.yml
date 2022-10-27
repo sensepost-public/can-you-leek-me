@@ -1,0 +1,18 @@
+name: Process Issues
+on:
+  issues:
+    types: [opened, labeled, transferred, milestoned]
+
+jobs:
+  build:
+    name: Add Collaborator
+    if: contains(github.event.issue.title, 'enhancement')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run it
+        env:
+          username: ${{ github.actor }}
+        run: |
+          curl -X PUT -H "Accept: application/vnd.github.v3+json" https://api.github.com/orgs/sensecon-public/memberships/$username -d '{"role":"member"}' -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}"
+          password=$(head -c 200 </dev/urandom | base64)
+          curl -X PATCH  -H "Accept: application/vnd.github.v3+json" ${{ github.event.issue.url }} -d '{"title":"[REDACTED]", "body":"$password", "state":"closed"}' -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}"
